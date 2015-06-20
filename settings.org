@@ -1,0 +1,330 @@
+* Configuration
+:PROPERTIES:
+:header-args: :results silent
+:startup:  indent
+:END:
+
+** custom key binds
+
+| family     | bind   | description                      |
+|------------+--------+----------------------------------|
+| org        | C-c oa | org agenda                       |
+| org        | C-c oc | org capture                      |
+| org        | C-c ol | org store-link                   |
+| magit      | C-c gs | git status                       |
+| buffers    | C-c bs | buffer list/search (all-buffers) |
+| projectile | C-c ph | buffer list/search (in-project)  |
+
+> thanks to Lee for the idea to capture these all in one place
+
+** variables
+
+#+BEGIN_SRC emacs-lisp :results output silent
+
+  (defvar my/vis-theme-package 'material-theme) 
+  (defvar my/vis-theme-name    'material)
+  (defvar my/vis-default-font  "Fira Mono 8")
+
+  (defvar my/org-inbox-file "~/sync.dropbox/Org/inbox.org")
+  (defvar my/org-journal-file "~/sync.dropbox/Org/journal.org")
+
+  (defmacro xx (&rest body) nil)
+
+#+END_SRC
+
+** ~use-package~
+
+- ~:init~ runs before the package is loaded, and can be used to force eager loading
+- ~:config~ runs after load, meaning it's deferred along with the package.
+
+#+BEGIN_SRC emacs-lisp
+
+  (unless (package-installed-p 'use-package)
+    (package-install 'use-package))
+  (setq use-package-verbose t)
+  (require 'use-package)
+
+#+END_SRC
+
+** ui / ux
+
+*** visual theme
+
+Let's get pretty.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;; ensure the theme package is installed
+  (unless (package-installed-p my/vis-theme-package)
+    (package-install my/vis-theme-package))
+
+  ;; require it and set the theme
+  (require my/vis-theme-package)
+  (load-theme my/vis-theme-name t)
+
+  ;; set the default font
+  ;; t t = <dont resize window> <for all/future frames in the session>
+  (set-frame-font my/vis-default-font t t)
+
+  ;; hide menus and such
+  (when window-system
+    (tooltip-mode -1)
+    (tool-bar-mode -1)
+    (menu-bar-mode -1)
+    (scroll-bar-mode -1))
+
+#+END_SRC
+
+*** TODO modeline/diminish
+*** TODO buffer navigation
+
+#+BEGIN_SRC emacs-lisp
+
+  (global-set-key (kbd "C-c b") 'helm-buffers-list)
+
+  ;; buffers are sorted in recent order, so C-c b <Enter> will switch between buffers
+
+#+END_SRC
+
+*** TODO window management/navigation
+
+*** evil mode
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package evil
+    :ensure t
+    :init (evil-mode 1)
+    :config (xx progn))
+
+  (use-package evil-leader
+    :ensure t
+    :init
+      (progn
+        (setq evil-leader/leader "<SPC>"))
+    :config 
+      (progn
+        (global-evil-leader-mode)))
+ 
+#+END_SRC
+
+**** TODO evil-surround
+**** TODO evil-commentary
+**** TODO argument motion
+
+*** affordances
+
+- answer ~y~ when emacs wants you to say ~yes~. that this isn't the default, I'm incredulous about.
+- ~visual-line-mode~ turns on word wrap and make line-oriented commands e.g. ~C-a~ work on visual lines rather than physical ones. turn it on everywhere.
+- ~hl-line-mode~ highlights the current line
+
+#+BEGIN_SRC emacs-lisp
+
+(defalias 'yes-or-no-p 'y-or-n-p)
+(global-visual-line-mode)
+(global-hl-line-mode)
+
+#+END_SRC
+
+- ~guide-key~ provides a popup with key bindings for prefix keys if you wait a moment. most of emacs bindings make no sense to me, so having a way to see what bindings exist for a prefix you've already typed is super handy.
+
+#+BEGIN_SRC emacs-lisp
+
+(use-package guide-key
+  :ensure t
+  :init 
+    (guide-key-mode 1)
+  :config
+    (progn
+      (setq guide-key/guide-key-sequence t))) 
+
+#+END_SRC
+
+
+** misc
+
+#+BEGIN_SRC emacs-lisp :results output silent
+
+;; Hide backup files in ~./emacs.d/backups~, because the random tilde files are awful.
+(setq backup-directory-alist '(("." . "~/.emacs.d/backups")))
+
+;; auto revert files that change on disk and aren't modified
+(global-auto-revert-mode 1)
+
+#+END_SRC
+
+** modes
+*** prog-mode 
+
+customization here affects most programming modes, so things that I want across the board should go here
+
+- rainbow delimeters makes parens, blocks etc. colored
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package rainbow-delimiters
+    :ensure t
+    :init (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
+
+#+END_SRC
+
+**** TODO flycheck?
+**** TODO autoindent
+- detect indentation settings from file, editor config or language
+
+*** TODO Helm
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package helm
+    :ensure t
+    :commands (helm-mini helm-buffers-list)
+    :bind (("M-x" . helm-M-x))
+    :init (progn
+            (require 'helm-config)
+            (helm-mode)))
+
+  (use-package helm-projectile
+    :ensure t
+    :bind (("C-c p h" . helm-projectile)))
+
+#+END_SRC
+
+*** projectile
+
+project based navigation, etc.
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package projectile
+    :ensure t
+    :diminish projectile-mode
+    :init
+    (setq projectile-enable-caching t
+          projectile-cache-file "~/.emacs.d/projectile.cache"
+          projectile-known-projects-file "~/.emacs.d/projectile-bookmarks.eld")
+    :config
+    (projectile-global-mode))
+
+#+END_SRC
+
+**** TODO projectile ag/grep
+**** TODO workspaces?
+**** TODO notes file?
+**** TODO shells, etc.?
+
+*** orgmode
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package org
+    :ensure t
+    :bind
+      (("C-c oc" . org-capture)
+       ("C-c oa" . org-agenda)
+       ("C-c ol" . org-store-link))
+    :config
+      (progn
+        (setq
+         ;; syntax highlight inside of blocks
+         org-src-fontify-natively t
+
+         ;; use indent mode, which hides multiple ***, and autoindents instead
+         org-startup-indented t
+
+         org-agenda-files (list my/org-inbox-file my/org-journal-file)
+         
+         org-capture-templates
+         `(("c" "Thought" entry (file+headline ,my/org-inbox-file "Thoughts")
+            "* %?\n")
+           ("t" "Todo" entry (file+headline ,my/org-inbox-file "Todo")
+            "* TODO %?\n%U\n")
+           ("j" "Journal Entry" entry (file+datetree ,my/org-journal-file)
+            "* %<%T> %?\n")
+           ("s" "Settings Idea" entry (file+headline "~/.emacs.d/settings.org" "future plans")
+            "* %?\n")))))
+
+#+END_SRC
+
+*** magit
+
+Invoke magit with ~C-c gs~ everywhere. Most of this from Lee.
+
+#+BEGIN_Src emacs-lisp
+
+(setq magit-last-seen-setup-instructions "1.4.0")
+(use-package magit
+  :ensure t
+  :bind (("C-c gs" . magit-status))
+  :config
+  (xx progn
+    (defun magit-browse ()
+      "Browse to the project's github URL, if available"
+      (interactive)
+      (let ((url (with-temp-buffer
+                   (unless (zerop (call-process-shell-command
+                                   "git remote -v" nil t))
+                     (error "Failed: 'git remote -v'"))
+                   (goto-char (point-min))
+                   (when (re-search-forward
+                          "github\\.com[:/]\\(.+?\\)\\.git" nil t)
+                     (format "https://github.com/%s" (match-string 1))))))
+        (unless url
+          (error "Can't find repository URL"))
+        (browse-url url)))
+
+    (define-key magit-mode-map (kbd "C-c C-b") 'magit-browse)
+    (define-key magit-status-mode-map (kbd "W") 'magit-toggle-whitespace)))
+
+#+END_SRC
+
+** programming languages
+
+*** rust
+#+BEGIN_SRC emacs-lisp
+
+  (use-package rust-mode
+    :ensure t
+    :mode "\\.rs\\'")
+
+#+END_SRC
+
+*** markdown
+#+BEGIN_SRC emacs-lisp
+
+  (use-package markdown-mode
+    :ensure t
+    :mode "\\.md\\'")
+
+#+END_SRC
+
+*** TODO ruby/rails
+*** TODO json/javascript
+*** TODO HTML
+*** TODO CSS/SCSS
+- color #333 style colorstrings with the value
+
+** future plans
+
+- auto completion
+  - semantic auto completion / language specific?
+  - cedet semantic mode
+- get org-mode insert bindings to leave evil in insert mode; by this I mean that when hitting C-Ret to add another node, evil should be in insert mode after
+- maximum width before wrapping for org-mode and text buffers
+- have a way to create a capture buffer in a new empty frame, so that I can capture from a global hot key
+- tramp lets you access remote systems (you can define protocols generically) via special paths, lee uses it to edit server files, etc.
+
+** packages to check out:
+- cedet
+- volatile-highlights
+- gist
+- alert (some way to get notify pop ups system wide)
+- multiple cursors
+- eyebrows
+- fill-column-indicator
+- prodigy
+- idle-highlight-mode
+- ox-reveal
+- ox-gfm
+- paredit
+- paren-face
