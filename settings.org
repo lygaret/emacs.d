@@ -6,14 +6,17 @@
 
 ** custom key binds
 
-| family     | bind   | description                      |
-|------------+--------+----------------------------------|
-| org        | C-c oa | org agenda                       |
-| org        | C-c oc | org capture                      |
-| org        | C-c ol | org store-link                   |
-| magit      | C-c gs | git status                       |
-| buffers    | C-c bs | buffer list/search (all-buffers) |
-| projectile | C-c ph | buffer list/search (in-project)  |
+| family     | bind        | description                                                 |
+|------------+-------------+-------------------------------------------------------------|
+| org        | C-c oa      | org agenda                                                  |
+| org        | C-c oc      | org capture                                                 |
+| org        | C-c ol      | org store-link                                              |
+| magit      | C-c gs      | git status                                                  |
+| projectile | C-c ph      | projectile-helm, list/search buffers and files (in-project) |
+| buffers    | C-c b       | buffer list/search (all-buffers)                            |
+| window     | C-w h/j/k/l | move to window left/below/above/right                       |
+| window     | C-w H/J/K/L | split window and move left/below/above/right                |
+|            |             |                                                             |
 
 > thanks to Lee for the idea to capture these all in one place
 
@@ -76,17 +79,41 @@ Let's get pretty.
 #+END_SRC
 
 *** TODO modeline/diminish
-*** TODO buffer navigation
+
+Things I know I want:
+
+- current file name (with the whole <project> thing)
+- current project name
+- file location (col/row)
+- evil mode
+- git info
+- don't really care about most minor modes
+
+*** TODO window/buffer navigation
 
 #+BEGIN_SRC emacs-lisp
 
+  ;; buffers are sorted in recent order, so C-c b <Enter> will switch between buffers
   (global-set-key (kbd "C-c b") 'helm-buffers-list)
 
-  ;; buffers are sorted in recent order, so C-c b <Enter> will switch between buffers
+  ;; window manipulation, C-c w(hjkl/HJKL) to move, create splits
+  (global-set-key (kbd "C-c wh") 'evil-window-left)
+  (global-set-key (kbd "C-c wl") 'evil-window-right)
+  (global-set-key (kbd "C-c wj") 'evil-window-down)
+  (global-set-key (kbd "C-c wk") 'evil-window-up)
+
+  (global-set-key (kbd "C-c wH") 'split-window-horizontally)
+  (global-set-key (kbd "C-c wL") (lambda () (interactive) (split-window-horizontally) (other-window 1)))
+  (global-set-key (kbd "C-c wJ") (lambda () (interactive) (split-window-vertically) (other-window 1)))
+  (global-set-key (kbd "C-c wK") 'split-window-vertically)
+
+  ;; back and forth forever
+  (global-set-key (kbd "C-c ww") 'other-window)
+
+  ;; dim unfocused windows 
+
 
 #+END_SRC
-
-*** TODO window management/navigation
 
 *** evil mode
 
@@ -97,18 +124,21 @@ Let's get pretty.
     :init (evil-mode 1)
     :config (xx progn))
 
-  (use-package evil-leader
+  (use-package evil-surround
     :ensure t
-    :init
-      (progn
-        (setq evil-leader/leader "<SPC>"))
+    :init (evil-surround-mode )
+    :config (xx progn))
+
+  (use-package evil-args
+    :ensure t
     :config 
-      (progn
-        (global-evil-leader-mode)))
+    (progn 
+      (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
+      (define-key evil-outer-text-objects-map "a" 'evil-outer-arg)))
+            
  
 #+END_SRC
 
-**** TODO evil-surround
 **** TODO evil-commentary
 **** TODO argument motion
 
