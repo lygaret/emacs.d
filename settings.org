@@ -102,15 +102,13 @@ Things I know I want:
   (global-set-key (kbd "C-c wj") 'evil-window-down)
   (global-set-key (kbd "C-c wk") 'evil-window-up)
 
-  (global-set-key (kbd "C-c wH") 'split-window-horizontally)
-  (global-set-key (kbd "C-c wL") (lambda () (interactive) (split-window-horizontally) (other-window 1)))
-  (global-set-key (kbd "C-c wJ") (lambda () (interactive) (split-window-vertically) (other-window 1)))
-  (global-set-key (kbd "C-c wK") 'split-window-vertically)
+  (global-set-key (kbd "C-c w S-h") 'split-window-horizontally)
+  (global-set-key (kbd "C-c w S-l") (lambda () (interactive) (split-window-horizontally) (other-window 1)))
+  (global-set-key (kbd "C-c w S-j") (lambda () (interactive) (split-window-vertically) (other-window 1)))
+  (global-set-key (kbd "C-c w S-k") 'split-window-vertically)
 
   ;; back and forth forever
   (global-set-key (kbd "C-c ww") 'other-window)
-
-  ;; dim unfocused windows 
 
 
 #+END_SRC
