@@ -12,6 +12,7 @@
 | org        | C-c oc      | org capture                                                 |
 | org        | C-c ol      | org store-link                                              |
 | magit      | C-c gs      | git status                                                  |
+| projectile | C-c pp      | projectile-switch-project, list/search projects             |
 | projectile | C-c ph      | projectile-helm, list/search buffers and files (in-project) |
 | buffers    | C-c b       | buffer list/search (all-buffers)                            |
 | window     | C-w h/j/k/l | move to window left/below/above/right                       |
