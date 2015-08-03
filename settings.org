@@ -23,8 +23,7 @@
 ** variables
 
 #+BEGIN_SRC emacs-lisp :results output silent
-
-  (defvar my/vis-theme-package 'material-theme) 
+  (defvar my/vis-theme-package 'material-theme)
   (defvar my/vis-theme-name    'material)
   (defvar my/vis-default-font  "Fira Mono 8")
 
@@ -32,7 +31,6 @@
   (defvar my/org-journal-file "~/sync.dropbox/Org/journal.org")
 
   (defmacro xx (&rest body) nil)
-
 #+END_SRC
 
 ** ~use-package~
@@ -41,12 +39,10 @@
 - ~:config~ runs after load, meaning it's deferred along with the package.
 
 #+BEGIN_SRC emacs-lisp
-
   (unless (package-installed-p 'use-package)
     (package-install 'use-package))
   (setq use-package-verbose t)
   (require 'use-package)
-
 #+END_SRC
 
 ** ui / ux
@@ -56,7 +52,6 @@
 Let's get pretty.
 
 #+BEGIN_SRC emacs-lisp
-
   ;; ensure the theme package is installed
   (unless (package-installed-p my/vis-theme-package)
     (package-install my/vis-theme-package))
@@ -76,6 +71,12 @@ Let's get pretty.
     (menu-bar-mode -1)
     (scroll-bar-mode -1))
 
+  ;; display whitespace
+  (setq whitespace-style '(face trailing tabs spaces newline empty indentation space-mark tab-mark newline-mark))
+  (setq whitespace-display-mappings
+    '((space-mark 32 [183] [46])
+      (newline-mark 10 [8629 10] [182 10])
+      (tab-mark 9 [9655 9] [92 9])))
 #+END_SRC
 
 *** TODO modeline/diminish
@@ -92,7 +93,6 @@ Things I know I want:
 *** TODO window/buffer navigation
 
 #+BEGIN_SRC emacs-lisp
-
   ;; buffers are sorted in recent order, so C-c b <Enter> will switch between buffers
   (global-set-key (kbd "C-c b") 'helm-buffers-list)
 
@@ -109,18 +109,61 @@ Things I know I want:
 
   ;; back and forth forever
   (global-set-key (kbd "C-c ww") 'other-window)
-
-
 #+END_SRC
 
 *** evil mode
 
 #+BEGIN_SRC emacs-lisp
-
   (use-package evil
     :ensure t
     :init (evil-mode 1)
-    :config (xx progn))
+    :config (progn
+
+(defun forward-highlight-chars ()
+  (interactive)
+  (save-excursion
+    (let (charset '())
+      (progn
+        (forward-char)
+        (while (let* ((current-character (char-after))
+                     (current-point (point)))
+                 (unless (memq current-character charset)
+                   (progn
+                     (add-to-list 'charset current-character)
+                     (overlay-put (make-overlay current-point (+ 1 current-point)) 'face 'bold)))
+                 (forward-char)
+                 (not (eolp))))))))
+
+(defun backward-highlight-chars ()
+  (interactive)
+  (save-excursion
+    (let (charset '())
+      (progn
+        (backward-char)
+        (while (let ((current-character (char-before))
+                     (current-point (point)))
+                 (unless (memq current-character charset)
+                   (progn
+                     (add-to-list 'charset current-character)
+                     (overlay-put (make-overlay (- current-point 1) current-point) 'face 'bold)))
+                 (backward-char)
+                 (not (bolp))))))))
+
+(defun my-evil-find-char ()
+  (interactive)
+  (forward-highlight-chars)
+  (call-interactively 'evil-find-char)
+  (remove-overlays))
+
+(defun my-evil-find-char-backward ()
+  (interactive)
+  (backward-highlight-chars)
+  (add-hook 'evil-motion-state-exit-hook 'remove-overlays)
+  (call-interactively 'evil-find-char-backward))
+
+(define-key evil-motion-state-map "f" 'my-evil-find-char)
+(define-key evil-motion-state-map "F" 'my-evil-find-char-backward)
+))
 
   (use-package evil-surround
     :ensure t
@@ -129,12 +172,10 @@ Things I know I want:
 
   (use-package evil-args
     :ensure t
-    :config 
-    (progn 
+    :config
+    (progn
       (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
       (define-key evil-outer-text-objects-map "a" 'evil-outer-arg)))
-            
- 
 #+END_SRC
 
 **** TODO evil-commentary
@@ -147,38 +188,32 @@ Things I know I want:
 - ~hl-line-mode~ highlights the current line
 
 #+BEGIN_SRC emacs-lisp
-
 (defalias 'yes-or-no-p 'y-or-n-p)
 (global-visual-line-mode)
 (global-hl-line-mode)
-
 #+END_SRC
 
 - ~guide-key~ provides a popup with key bindings for prefix keys if you wait a moment. most of emacs bindings make no sense to me, so having a way to see what bindings exist for a prefix you've already typed is super handy.
 
 #+BEGIN_SRC emacs-lisp
-
 (use-package guide-key
   :ensure t
-  :init 
+  :init
     (guide-key-mode 1)
   :config
     (progn
-      (setq guide-key/guide-key-sequence t))) 
-
+      (setq guide-key/guide-key-sequence t)))
 #+END_SRC
 
 
 ** misc
 
 #+BEGIN_SRC emacs-lisp :results output silent
-
 ;; Hide backup files in ~./emacs.d/backups~, because the random tilde files are awful.
 (setq backup-directory-alist '(("." . "~/.emacs.d/backups")))
 
 ;; auto revert files that change on disk and aren't modified
 (global-auto-revert-mode 1)
-
 #+END_SRC
 
 ** modes
@@ -193,6 +228,60 @@ customization here affects most programming modes, so things that I want across 
   (use-package rainbow-delimiters
     :ensure t
     :init (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
+
+#+END_SRC
+
+automatically infer tab/space indentation
+
+#+BEGIN_SRC emacs-lisp
+
+(defun how-many-region (begin end regexp &optional interactive)
+  "Print number of non-trivial matches for REGEXP in region.
+   Non-interactive arguments are Begin End Regexp"
+
+  (interactive "r\nsHow many matches for (regexp): \np")
+  (let ((count 0) opoint)
+    (save-excursion
+      (setq end (or end (point-max)))
+      (goto-char (or begin (point)))
+      (while (and (< (setq opoint (point)) end)
+		  (re-search-forward regexp end t))
+	(if (= opoint (point))
+	    (forward-char 1)
+	  (setq count (1+ count))))
+      (if interactive (message "%d occurrences" count))
+      count)))
+
+(defun infer-indentation-style ()
+  "If the source file uses tabs, we use tabs; spaces, spaces.
+   If neither, fallback to our current indent-tabs-mode"
+  (interactive)
+  (let ((space-count (how-many-region (point-min) (point-max) "^  "))
+	      (tab-count (how-many-region (point-min) (point-max) "^\t")))
+    (if (> space-count tab-count) (setq ident-tabs-mode nil))
+    (if (< space-count tab-count) (setq ident-tabs-mode t))))
+
+(defun set-tab-stop-width (width) 
+  "Set all tab stops to WIDTH in current buffer; this updates `tab-stop-width`, but not `tab-width`."
+  (interactive "nTab width: ")
+  (let* ((max-col (car (last tab-stop-list)))
+         (n-tab-stops (/ max-col width)))
+    (set (make-local-variable 'tab-stop-list)
+         (mapcar (lambda (x) (* width x))
+                 (number-sequence 1 n-tab-stops)))
+    (unless (zerop (% max-col width))
+      (setcdr (last tab-stop-list)
+              (list max-col)))))
+
+(defun my-prog-mode-tab-stuff ()
+  (interactive)
+  (setq indent-tabs-mode nil
+        tab-stop-list (number-sequence 2 120 2))
+  (set-tab-stop-width 2)
+  (infer-indentation-style)
+  (whitespace-mode))
+
+(add-hook 'prog-mode-hook 'my-prog-mode-tab-stuff)
 
 #+END_SRC
 
@@ -214,7 +303,8 @@ customization here affects most programming modes, so things that I want across 
 
   (use-package helm-projectile
     :ensure t
-    :bind (("C-c p h" . helm-projectile)))
+    :bind (("C-c p h" . helm-projectile)
+           ("C-c p p" . helm-projectile-switch-project)))
 
 #+END_SRC
 
@@ -308,6 +398,19 @@ Invoke magit with ~C-c gs~ everywhere. Most of this from Lee.
 
 ** programming languages
 
+*** helm-dash
+
+Allows browsing dash documentation sets in emacs.
+
+#+BEGIN_SRC emacs-lisp
+
+(use-package helm-dash
+  :ensure t
+  :bind (("C-c hd" . helm-dash)
+         ("C-c hh" . helm-dash-at-point)))
+
+#+END_SRC
+
 *** rust
 #+BEGIN_SRC emacs-lisp
 
@@ -326,7 +429,38 @@ Invoke magit with ~C-c gs~ everywhere. Most of this from Lee.
 
 #+END_SRC
 
-*** TODO ruby/rails
+*** ruby/rails
+
+#+BEGIN_SRC emacs-lisp
+
+(use-package rvm
+  :ensure t
+  :init (rvm-use-default)
+  :config 
+    (progn 
+      (add-hook 'enh-ruby-mode-hook (lambda () (rvm-activate-corresponding-ruby)))
+      (defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate)
+        (rvm-activate-corresponding-ruby))))
+
+(use-package enh-ruby-mode
+  :ensure t
+  :mode (("\\(Rake\\|Thor\\|Guard\\|Gem\\|Cap\\|Vagrant\\)file\\'" . enh-ruby-mode)
+         ("\\.\\(rb\\|rabl\\|ru\\|builder\\|rake\\|thor\\|gemspec\\|jbuilder\\)\\'" . enh-ruby-mode))
+  :config (progn
+            (setq enh-ruby-deep-indent-paren nil
+                  enh-ruby-hanging-deep-indent-level 2)))
+
+(use-package robe
+  :ensure t
+  :init 
+    (progn
+      (add-hook 'enh-ruby-mode-hook 'robe-mode))
+  :config 
+    (xx progn))
+
+(use-package bundler :ensure t :defer t)
+#+END_SRC
+
 *** TODO json/javascript
 *** TODO HTML
 *** TODO CSS/SCSS

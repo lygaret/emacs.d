@@ -8,3 +8,6 @@
 /settings.tex
 /bookmarks
 *.elc
+*.swp
+/projectile.cache
+/projectile-bookmarks.eld
