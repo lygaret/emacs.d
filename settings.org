@@ -13,6 +13,8 @@
 | org        | C-c oc      | org capture                                                 |
 | org        | C-c ol      | org store-link                                              |
 | magit      | C-c gs      | git status                                                  |
+| magit      | C-c g?      | git log for the current file                                |
+| magit      | C-c gs      | git status                                                  |
 | projectile | C-c pp      | projectile-switch-project, list/search projects             |
 | projectile | C-c ph      | projectile-helm, list/search buffers and files (in-project) |
 | buffers    | C-c b       | buffer list/search (all-buffers)                            |
@@ -391,31 +393,31 @@ project based navigation, etc.
 Invoke magit with ~C-c gs~ everywhere. Most of this from Lee.
 
 #+BEGIN_Src emacs-lisp
+  (setq magit-last-seen-setup-instructions "1.4.0")
+  (use-package magit
+    :ensure t
+    :bind (("C-c gs" . magit-status)
+           ("C-c g?" . magit-log-buffer-file)
+           ("C-c gl" . magit-log-current))
+    :config
+    (xx progn
+      (defun magit-browse ()
+        "Browse to the project's github URL, if available"
+        (interactive)
+        (let ((url (with-temp-buffer
+                     (unless (zerop (call-process-shell-command
+                                     "git remote -v" nil t))
+                       (error "Failed: 'git remote -v'"))
+                     (goto-char (point-min))
+                     (when (re-search-forward
+                            "github\\.com[:/]\\(.+?\\)\\.git" nil t)
+                       (format "https://github.com/%s" (match-string 1))))))
+          (unless url
+            (error "Can't find repository URL"))
+          (browse-url url)))
 
-(setq magit-last-seen-setup-instructions "1.4.0")
-(use-package magit
-  :ensure t
-  :bind (("C-c gs" . magit-status))
-  :config
-  (xx progn
-    (defun magit-browse ()
-      "Browse to the project's github URL, if available"
-      (interactive)
-      (let ((url (with-temp-buffer
-                   (unless (zerop (call-process-shell-command
-                                   "git remote -v" nil t))
-                     (error "Failed: 'git remote -v'"))
-                   (goto-char (point-min))
-                   (when (re-search-forward
-                          "github\\.com[:/]\\(.+?\\)\\.git" nil t)
-                     (format "https://github.com/%s" (match-string 1))))))
-        (unless url
-          (error "Can't find repository URL"))
-        (browse-url url)))
-
-    (define-key magit-mode-map (kbd "C-c C-b") 'magit-browse)
-    (define-key magit-status-mode-map (kbd "W") 'magit-toggle-whitespace)))
-
+      (define-key magit-mode-map (kbd "C-c C-b") 'magit-browse)
+      (define-key magit-status-mode-map (kbd "W") 'magit-toggle-whitespace)))
 #+END_SRC
 
 ** programming languages
