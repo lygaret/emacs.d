@@ -8,6 +8,7 @@
 
 | family     | bind        | description                                                 |
 |------------+-------------+-------------------------------------------------------------|
+| emacs      | C-c ~       | edit settings.org                                           |
 | org        | C-c oa      | org agenda                                                  |
 | org        | C-c oc      | org capture                                                 |
 | org        | C-c ol      | org store-link                                              |
@@ -110,6 +111,18 @@ Things I know I want:
 
   ;; back and forth forever
   (global-set-key (kbd "C-c ww") 'other-window)
+
+  ;; open horizontal splits by default
+  (defun split-window-prefer-horizontally (window)
+    "If there's only one window (excluding any possibly active minibuffer), then split the current window horizontally instead of vertically."
+    (if (and (one-window-p t)
+             (not (active-minibuffer-window)))
+        (let ((split-height-threshold nil))
+          (split-window-sensibly window))
+        (split-window-sensibly window)))
+
+  (setq split-window-preferred-function 'split-window-prefer-horizontally)
+
 #+END_SRC
 
 *** evil mode
@@ -215,6 +228,14 @@ Things I know I want:
 
 ;; auto revert files that change on disk and aren't modified
 (global-auto-revert-mode 1)
+
+;; create a binding to edit my settings
+(defun edit-settings-org ()
+  (interactive)
+  (find-file-other-window (locate-user-emacs-file "settings.org")))
+
+(global-set-key (kbd "C-c ~") 'edit-settings-org)
+
 #+END_SRC
 
 ** modes
