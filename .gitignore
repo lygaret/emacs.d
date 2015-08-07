@@ -11,3 +11,4 @@
 *.swp
 /projectile.cache
 /projectile-bookmarks.eld
+session.*
