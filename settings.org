@@ -6,6 +6,13 @@
 
 ** custom key binds
 
+| ~C-c~   | global stuff - these should be the same everywhere, and are things like file management, git, etc. |
+| ~M-c~ | major mode stuff - rails commands in rails projects, etc.                                          |
+|         |                                                                                                    |
+
+
+~C-c~ is global stuff
+
 | family     | bind        | description                                                 |
 |------------+-------------+-------------------------------------------------------------|
 | org        | C-c oa      | org agenda                                                  |
@@ -49,7 +56,21 @@
 
 #+END_SRC
 
+
+** defaults
+
+#+BEGIN_SRC emacs-lisp
+
+  (ido-mode t)
+  (setq ido-flex-matching t)
+
+  (require 'uniquify)
+  (setq uniquify-buffer-name-style 'forward)
+
+#+END_SRC
+
 ** ui / ux
+
 
 *** visual theme
 
@@ -120,7 +141,8 @@ Things I know I want:
   (use-package evil
     :ensure t
     :init (evil-mode 1)
-    :config (xx progn))
+    :config (progn
+              (evil-define-key 'normal special-mode-map "q" 'quit-window)))
 
   (use-package evil-surround
     :ensure t
@@ -134,7 +156,7 @@ Things I know I want:
       (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
       (define-key evil-outer-text-objects-map "a" 'evil-outer-arg)))
             
- 
+   
 #+END_SRC
 
 **** TODO evil-commentary
@@ -168,6 +190,13 @@ Things I know I want:
 
 #+END_SRC
 
+*** tramp
+
+#+BEGIN_SRC emacs-lisp
+
+  (setq tramp-default-method "ssh")
+
+#+END_SRC
 
 ** misc
 
@@ -190,7 +219,7 @@ customization here affects most programming modes, so things that I want across 
 
 #+BEGIN_SRC emacs-lisp
 
-  (use-package rainbow-delimiters
+  (xx use-package rainbow-delimiters
     :ensure t
     :init (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
 
@@ -214,7 +243,8 @@ customization here affects most programming modes, so things that I want across 
 
   (use-package helm-projectile
     :ensure t
-    :bind (("C-c p h" . helm-projectile)))
+    :bind (("C-c p h" . helm-projectile)
+           ("C-c p p" . helm-projectile-switch-project)))
 
 #+END_SRC
 
@@ -306,6 +336,19 @@ Invoke magit with ~C-c gs~ everywhere. Most of this from Lee.
 
 #+END_SRC
 
+*** helm-dash
+
+Search and show dash docsets
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package helm-dash
+    :ensure t
+    :bind (("<M-Ret> dh" . helm-dash)
+           ("<M-Ret> dd" . helm-dash-at-point)))
+
+#+END_SRC
+
 ** programming languages
 
 *** rust
@@ -327,10 +370,75 @@ Invoke magit with ~C-c gs~ everywhere. Most of this from Lee.
 #+END_SRC
 
 *** TODO ruby/rails
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package ruby-mode 
+    :ensure t
+    :interpreter "ruby"
+    :mode ("\\.rb\\'" "Gemfile" "Rakefile"))
+
+  (use-package rvm
+    :ensure t
+    :init (progn
+            (rvm-use-default)))
+
+  (use-package projectile-rails
+    :ensure t
+    :init (progn 
+            (add-hook 'projectile-mode-hook 'projectile-rails-on)))
+
+  (use-package robe
+    :ensure t
+    :init (progn
+            (add-hook 'ruby-mode-hook 'robe-mode)
+            (define-key projectile-rails-mode-map (kbd "M-c g") 'robe-jump)))
+
+#+END_SRC
+
+**** TODO bundler commands while editing gemfiles
+
 *** TODO json/javascript
 *** TODO HTML
 *** TODO CSS/SCSS
 - color #333 style colorstrings with the value
+*** clojure
+STANDARD_WEB
+#+BEGIN_SRC emacs-lisp
+
+(use-package paredit
+  :ensure t)
+
+(use-package clojure-mode
+  :ensure t
+  :mode ("\\.edn$" "\\.boot$" "\\.cljs.*$" "\\.clj$" "lein-env")
+  :init (progn
+          (add-hook 'clojure-mode-hook 'enable-paredit-mode)
+          (add-hook 'clojure-mode-hook 'subword-mode)
+          (add-hook 'clojure-mode-hook
+                    (lambda ()
+                      (setq inferior-lisp-program "lein repl")
+                      (font-lock-add-keywords
+                        nil
+                        '(("(\\(facts?\\)" (1 font-lock-keyword-face))
+                          ("(\\(background?\\)" (1 font-lock-keyword-face))))
+                      (define-clojure-indent (fact 1))
+                      (define-clojure-indent (facts 2))))))
+
+(use-package clojure-mode-extra-font-locking
+  :ensure t)
+
+(use-package cider
+  :ensure t
+  :config (progn
+            (add-hook 'cider-mode-hook 'cider-turn-on-eldoc-mode)
+            (add-hook 'cider-repl-mode-hook 'paredit-mode)
+            (setq cider-show-error-buffer t
+                  cider-auto-select-error-buffer t
+                  cider-repl-history-file "~/.emacs.d/cider.history"
+                  cider-repl-wrap-history t)))
+
+#+END_SRC
 
 ** future plans
 
@@ -356,3 +464,8 @@ Invoke magit with ~C-c gs~ everywhere. Most of this from Lee.
 - ox-gfm
 - paredit
 - paren-face
+
+- goto-chg, retur to last edit
+- smartscan, move to the next/prev instance of the word under cursor in the current buffer
+- whitespace (show marks for different kinds of whitespace, and highlight long lines
+- discover, create "context menus" displaying the common shortcuts for the current mode
