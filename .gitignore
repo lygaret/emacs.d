@@ -12,3 +12,8 @@
 /projectile.cache
 /projectile-bookmarks.eld
 session.*
+cider.history
+ido.last
+nohup.out
+tramp
+var/
