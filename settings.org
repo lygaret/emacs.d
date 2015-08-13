@@ -71,7 +71,6 @@
 
 ** ui / ux
 
-
 *** visual theme
 
 Let's get pretty.
@@ -150,63 +149,66 @@ Things I know I want:
 *** evil mode
 
 #+BEGIN_SRC emacs-lisp
-    (use-package evil
-      :ensure t
-      :init (evil-mode 1)
-      :config (progn
-                (evil-define-key 'normal special-mode-map "q" 'quit-window)
-
-                (defun forward-highlight-chars ()
-                  (interactive)
-                  (save-excursion
-                    (let (charset '())
-                      (progn
-                        (forward-char)
-                        (while (let* ((current-character (char-after))
-                                      (current-point (point)))
-                                 (unless (memq current-character charset)
-                                   (progn
-                                     (add-to-list 'charset current-character)
-                                     (overlay-put (make-overlay current-point (+ 1 current-point)) 'face 'bold)))
-                                 (forward-char)
-                                 (not (eolp))))))))
-
-                (define-key evil-motion-state-map "f" (lambda ()
-                                                        (interactive)
-                                                        (forward-highlight-chars)
-                                                        (call-interactively 'evil-find-char)))
-
-                (defun backward-highlight-chars ()
-                  (interactive)
-                  (save-excursion
-                    (let (charset '())
-                      (progn
-                        (backward-char)
-                        (while (let ((current-character (char-before))
-                                     (current-point (point)))
-                                 (unless (memq current-character charset)
-                                   (progn
-                                     (add-to-list 'charset current-character)
-                                     (overlay-put (make-overlay (- current-point 1) current-point) 'face 'bold)))
-                                 (backward-char)
-                                 (not (bolp))))))))
-
-                (define-key evil-motion-state-map "F" (lambda ()
-                                                        (interactive)
-                                                        (backward-highlight-chars)
-                                                        (call-interactively 'evil-find-char)))))
+  (use-package evil
+    :ensure t
+    :init (evil-mode 1)
+    :config (progn
+              (setq-default evil-symbol-word-search t)
+              (evil-define-key 'normal special-mode-map "q" 'quit-window)))
 
   (use-package evil-surround
     :ensure t
-    :init (evil-surround-mode )
+    :init (global-evil-surround-mode 1)
     :config (xx progn))
 
   (use-package evil-args
     :ensure t
-    :config 
-    (progn 
+    :config
+    (progn
       (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
       (define-key evil-outer-text-objects-map "a" 'evil-outer-arg)))
+
+  ;; this stuff's not quite working yet, so it's commented out.
+  (xx progn
+      (defun forward-highlight-chars ()
+        (interactive)
+        (save-excursion
+          (let (charset '())
+            (progn
+              (forward-char)
+              (while (let* ((current-character (char-after))
+                            (current-point (point)))
+                       (unless (memq current-character charset)
+                         (progn
+                           (add-to-list 'charset current-character)
+                           (overlay-put (make-overlay current-point (+ 1 current-point)) 'face 'bold)))
+                       (forward-char)
+                       (not (eolp))))))))
+
+      (define-key evil-motion-state-map "f" (lambda ()
+                                              (interactive)
+                                              (forward-highlight-chars)
+                                              (call-interactively 'evil-find-char)))
+
+      (defun backward-highlight-chars ()
+        (interactive)
+        (save-excursion
+          (let (charset '())
+            (progn
+              (backward-char)
+              (while (let ((current-character (char-before))
+                           (current-point (point)))
+                       (unless (memq current-character charset)
+                         (progn
+                           (add-to-list 'charset current-character)
+                           (overlay-put (make-overlay (- current-point 1) current-point) 'face 'bold)))
+                       (backward-char)
+                       (not (bolp))))))))
+
+      (define-key evil-motion-state-map "F" (lambda ()
+                                              (interactive)
+                                              (backward-highlight-chars)
+                                              (call-interactively 'evil-find-char))))
 #+END_SRC
 
 **** TODO evil-commentary
@@ -232,6 +234,14 @@ Things I know I want:
     :init (guide-key-mode 1)
     :config (progn
               (setq guide-key/guide-key-sequence t)))
+#+END_SRC
+
+- ~neotree~ gives a tree that can follow you around in projectile
+  
+#+BEGIN_SRC emacs-lisp
+  (use-package neotree
+    :ensure t
+    :bind (("C-c t" . neotree-toggle)))
 #+END_SRC
 
 *** tramp
@@ -583,3 +593,4 @@ STANDARD_WEB
 - smartscan, move to the next/prev instance of the word under cursor in the current buffer
 - whitespace (show marks for different kinds of whitespace, and highlight long lines
 - discover, create "context menus" displaying the common shortcuts for the current mode
+  
