@@ -18,7 +18,7 @@
 | emacs      | C-c ~       | edit settings.org                                           |
 | org        | C-c oa      | org agenda                                                  |
 | org        | C-c oc      | org capture                                                 |
-| org        | C-c ol      | org store-link                                              |
+| Org        | C-c ol      | org store-link                                              |
 | magit      | C-c gs      | git status                                                  |
 | magit      | C-c g?      | git log for the current file                                |
 | magit      | C-c gs      | git status                                                  |
@@ -27,6 +27,12 @@
 | buffers    | C-c b       | buffer list/search (all-buffers)                            |
 | window     | C-w h/j/k/l | move to window left/below/above/right                       |
 | window     | C-w H/J/K/L | split window and move left/below/above/right                |
+|            |             |                                                             |
+| eval       | C-c e RET   | smart eval in whatever language                             |
+| eval       | C-c e SPACE | eval last sexp in whatever language                         |
+| eval       | C-c e r     | eval current region                                         |
+| eval       | C-c e b     | eval current block                                          |
+| eval       | C-c e d     | eval current defun                                          |
 |            |             |                                                             |
 
 > thanks to Lee for the idea to capture these all in one place
@@ -60,13 +66,12 @@
 ** defaults
 
 #+BEGIN_SRC emacs-lisp
-
   (ido-mode t)
   (setq ido-flex-matching t)
+  (setq compilation-scroll-output 'first-error)
 
   (require 'uniquify)
   (setq uniquify-buffer-name-style 'forward)
-
 #+END_SRC
 
 ** ui / ux
@@ -241,16 +246,17 @@ Things I know I want:
 #+BEGIN_SRC emacs-lisp
   (use-package neotree
     :ensure t
-    :bind (("C-c t" . neotree-toggle)))
+    :bind (("C-c t" . neotree-toggle))
+    :config (progn
+              (add-hook 'projectile-switch-project-hook 'neotree-projectile-action)))
 #+END_SRC
 
 *** tramp
 
 #+BEGIN_SRC emacs-lisp
-
   (setq tramp-default-method "ssh")
-
 #+END_SRC
+
 
 ** misc
 
@@ -447,13 +453,13 @@ Invoke magit with ~C-c gs~ everywhere. Most of this from Lee.
 Search and show dash docsets
 
 #+BEGIN_SRC emacs-lisp
-
   (use-package helm-dash
     :ensure t
     :bind (("<M-Ret> dh" . helm-dash)
            ("<M-Ret> dd" . helm-dash-at-point)))
 
 #+END_SRC
+
 
 ** programming languages
 
@@ -485,39 +491,88 @@ Allows browsing dash documentation sets in emacs.
 *** ruby/rails
 
 #+BEGIN_SRC emacs-lisp
-  (use-package ruby-mode 
-    :ensure t
-    :interpreter "ruby"
-    :mode ("\\.rb\\'" "Gemfile" "Rakefile"))
+      (use-package ruby-mode
+        :ensure t
+        :interpreter "ruby")
 
-  (use-package enh-ruby-mode
-    :ensure t
-    :mode (("\\(Rake\\|Thor\\|Guard\\|Gem\\|Cap\\|Vagrant\\)file\\'" . enh-ruby-mode)
-           ("\\.\\(rb\\|rabl\\|ru\\|builder\\|rake\\|thor\\|gemspec\\|jbuilder\\)\\'" . enh-ruby-mode))
-    :config (progn
-              (setq enh-ruby-deep-indent-paren nil
-                    enh-ruby-hanging-deep-indent-level 2)))
-  (use-package projectile-rails
-    :ensure t
-    :init (progn 
-            (add-hook 'projectile-mode-hook 'projectile-rails-on)))
+      (use-package enh-ruby-mode
+        :ensure t
+        :mode (("\\(Rake\\|Thor\\|Guard\\|Gem\\|Cap\\|Vagrant\\)file\\'" . enh-ruby-mode)
+               ("\\.\\(rb\\|rabl\\|ru\\|builder\\|rake\\|thor\\|gemspec\\|jbuilder\\)\\'" . enh-ruby-mode))
+        :config (progn
+                  (setq enh-ruby-deep-indent-paren nil
+                        enh-ruby-hanging-deep-indent-level 2)))
 
-  (use-package rvm
-    :ensure t
-    :init (rvm-use-default)
-    :config (progn
-              (add-hook 'enh-ruby-mode-hook (lambda () (rvm-activate-corresponding-ruby)))
-              (defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate)
-                (rvm-activate-corresponding-ruby))))
+      (use-package inf-ruby
+        :ensure t
+        :config (progn
+                  (add-hook 'ruby-mode-hook 'inf-ruby-minor-mode)
+                  (add-hook 'enh-ruby-mode-hook 'inf-ruby-minor-mode)
 
-  (use-package robe
-    :ensure t
-    :init (progn
-            (add-hook 'enh-ruby-mode-hook 'robe-mode)
-            (define-key projectile-rails-mode-map (kbd "M-c g") 'robe-jump))
-    :config (xx progn))
+                  ;; add ruby-shells in staging and production
+                  (add-to-list 'inf-ruby-implementations
+                               '("ts-staging" . "ssh -t scout-staging.us-central1-f.zeta-bonfire-306 \"source $HOME/.rvm/scripts/rvm; cd mvp; RAILS_ENV='staging' bundle exec rails c\""))
 
-  (use-package bundler :ensure t :defer t)
+                  ;; send the current line
+                  (defun ruby-send-line ()
+                    (interactive)
+                    (save-excursion
+                      (beginning-of-line)
+                      (let ((begin (point)))
+                        (end-of-line)
+                        (ruby-send-region begin (point)))))
+
+                  (defun ruby-send-smartly ()
+                    (interactive
+                     (if mark-active
+                         (ruby-send-region nil)
+                       (ruby-send-block))))
+
+                  ;; override send definition and send block, to use enh-ruby-mode stuff
+                  (defun ruby-send-definition ()
+                    (interactive)
+                    (save-excursion
+                      (enh-ruby-beginning-of-defun)
+                      (let ((begin (point)))
+                        (enh-ruby-end-of-defun)
+                        (ruby-send-region begin (point)))))
+
+                  (defun ruby-send-block ()
+                    (interactive)
+                    (save-excursion
+                      (enh-ruby-beginning-of-block)
+                      (let ((begin (point)))
+                        (enh-ruby-end-of-block)
+                        (ruby-send-region begin (point)))))
+
+                  (define-key inf-ruby-minor-mode-map (kbd "C-c e SPC") 'ruby-send-smartly)
+                  (define-key inf-ruby-minor-mode-map (kbd "C-c e RET") 'ruby-send-line)
+                  (define-key inf-ruby-minor-mode-map (kbd "C-c e r") 'ruby-send-region)
+                  (define-key inf-ruby-minor-mode-map (kbd "C-c e b") 'ruby-send-block)
+                  (define-key inf-ruby-minor-mode-map (kbd "C-c e d") 'ruby-send-definition)))
+
+      (use-package projectile-rails
+        :ensure t
+        :init (progn
+                (add-hook 'projectile-mode-hook 'projectile-rails-on)))
+
+      (use-package rvm
+        :ensure t
+        :init (rvm-use-default)
+        :config (progn
+                  (add-hook 'enh-ruby-mode-hook (lambda () (rvm-activate-corresponding-ruby)))
+                  (defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate)
+                    (rvm-activate-corresponding-ruby))))
+
+      (use-package robe
+        :ensure t
+        :init (progn
+                (add-hook 'enh-ruby-mode-hook 'robe-mode)
+                (define-key projectile-rails-mode-map (kbd "M-c g") 'robe-jump))
+        :config (xx progn))
+
+      (use-package bundler :ensure t :defer t)
+
 #+END_SRC
 
 **** TODO bundler commands while editing gemfiles
