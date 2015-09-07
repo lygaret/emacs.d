@@ -1,7 +1,9 @@
-;;; org-github-links.el - Add support for github:user/repo links to org-mode
+;;; org-github-links.el --- Add support for github:user/repo links to org-mode
 
 ;; Copyright (c) 2015 Jon Raphaelson
+
 ;; Author: Jon Raphaelson <jon@accidental.cc>
+;; Package-Requires: ((s "1.9.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,6 +30,7 @@
 ;;; Code:
 
 (require 'org)
+(require 's)
 
 (defvar org-github-links-match-regex
   (rx (seq (group (one-or-more (not (any ?/))))
@@ -36,10 +39,10 @@
 		     (opt (or
 			   (seq (group-n 3 "@") (group-n 4 (one-or-more hex)))
 			   (seq (group-n 3 "#") (group-n 4 (one-or-more digit)))))))))
-  "The regex to use to match github short-links")
+  "The regex to use to match github short-links.")
 
 (defun org-github-links-generate-url (path)
-  "Visit the Github repo for PATH"
+  "Visit the Github repo for PATH."
   (let* ((matches (s-match org-github-links-match-regex path))
 	 (user    (nth 1 matches))
 	 (repo    (nth 2 matches))
@@ -53,13 +56,17 @@
      ((equal type "#") (format "https://github.com/%s/%s/issues/%s" user repo extra)))))
 
 (defun org-github-links-open (path)
+  "Open the url recognized in PATH in a browser."
   (browse-url (org-github-links-generate-url path)))
 
 (defun org-github-links-export (path desc backend)
+  "Export the link to the url recognized in PATH, displayed as DESC (or path if nil), to BACKEND."
   (let ((url (org-github-links-generate-url path)))
     (cl-case backend
       (html  (format "<a href=\"%s\">%s</a>" url (or desc path)))
       (latex (format "\href{%s}{%s}" url (or desc path))))))
   
 (org-add-link-type "github" 'org-github-links-open 'org-github-links-export)
+
 (provide 'org-github-links)
+;;; org-github-links.el ends here
