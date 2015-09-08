@@ -3,6 +3,7 @@
 ;; Copyright (c) 2015 Jon Raphaelson
 
 ;; Author: Jon Raphaelson <jon@accidental.cc>
+;; Version: 1.0
 ;; Package-Requires: ((s "1.9.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
