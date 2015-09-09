@@ -79,10 +79,28 @@ Clean up the defaults that emacs provides, before even starting on anything cust
 
   ;; tramp should use ssh by default
   (setq tramp-default-method "ssh")
-
-  ;; 
 #+END_SRC
+
+*** midnight mode
+
+midnight mode cleans up unmodified buffers that have been sitting around for too long. change to clear every hour rather than 24, and clear anything that hasn't been touched in a day
+
+#+BEGIN_SRC emacs-lisp
+  (require 'midnight)
+  (midnight-delay-set 'midnight-delay "12:00am")
+  (setq midnight-period (* 1 60 60)
+        clean-buffer-list-display-general 1)
+#+END_SRC
+
+**** TODO is there a way to reduce the timeout to some number of hours instead
+
   
+*** persistent scratch
+#+BEGIN_SRC emacs-lisp
+(req-package persistent-scratch
+  :init (persistent-scratch-setup-default))
+#+END_SRC
+
 
 * ui/ux stuff
 
@@ -104,6 +122,9 @@ Clean up the defaults that emacs provides, before even starting on anything cust
     (tool-bar-mode -1)
     (menu-bar-mode -1)
     (scroll-bar-mode -1))
+
+  ;; show scratch to start
+  (setq inhibit-startup-screen t)
 #+END_SRC
 
 - ~guide-key~ provides a popup with key bindings for prefix keys if you wait a moment.
@@ -161,7 +182,15 @@ Clean up the defaults that emacs provides, before even starting on anything cust
 #+BEGIN_SRC emacs-lisp
   (req-package smart-mode-line
     :init (progn (sml/setup)
-                 (setq sml/theme 'respectful)))
+                 (setq-default
+                  sml/theme 'respectful
+                  sml/name-width 0
+                  sml/mode-width 'right
+                  sml/shorten-directory t
+                  sml/shorten-modes t)))
+
+  ;; no one cares about file size
+  (size-indication-mode -1)
 #+END_SRC
 
 ** TODO workspaces?
