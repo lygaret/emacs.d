@@ -17,3 +17,5 @@ ido.last
 nohup.out
 tramp
 var/
+emacs.el
+emacs.html

@@ -1,0 +1,412 @@
+#+TITLE: Emacs Configuration
+#+HTML_HEAD: <link rel="stylesheet" href="http://dakrone.github.io/org.css" type="text/css" />
+#+TODO: CHECKOUT(c) TODO(t) DONE(d)
+#+STARTUP: fold content
+
+This is my emacs setup; there are many like it, but this one is mine. 
+Much thanks to [[github:dakrone][Lee Hinman]] for his help getting this setup.
+  
+- ~C-c~ is generarally for global stuff; these should be the same everywhere, and are things like file management, git, etc.
+- ~C-SPACE~ is for specific major mode stuff that doesn't have a globalish analogue
+
+| family     | bind        | description                            |
+| emacs      | ~C-c \~~    | edit emacs.org (this file)             |
+| org        | ~C-c oa~    | org agenda                             |
+| org        | ~C-c oc~    | org capture                            |
+| org        | ~C-c ol~    | org store link                         |
+| magit      | ~C-c gs~    | git status                             |
+| magit      | ~C-c gl~    | git log                                |
+| magit      | ~C-c gh~    | git log for current file               |
+| projectile | ~C-c pp~    | list/switch projectile projects        |
+| projectile | ~C-c ph~    | helm-mini, inside project              |
+| buffers    | ~C-c b~     | helm-buffers                           |
+| eval       | ~C-c e RET~ | eval current line in whatever language |
+| eval       | ~C-c e SPC~ | eval last sexp (or block)              |
+| eval       | ~C-c er~    | eval region                            |
+| eval       | ~C-c ed~    | eval defun                             |
+
+* preliminaries
+
+Ensure some packages are installed and get emacs to a useful preliminary
+** ~req-package~
+
+~req-package~ is built on-top of ~use-package~, and lets you define required packages, and then loads everything in the correct order. Otherwise it's identical to ~use-package~.
+
+- ~:init~ runs before the package is loaded, and can be used to force eager loading
+- ~:config~ runs after the load, meaning it's deferred along with the package.
+
+#+BEGIN_SRC emacs-lisp
+  (unless (package-installed-p 'req-package)
+    (package-install 'req-package))
+
+  (setq use-package-verbose t)
+  (require 'req-package)
+#+END_SRC
+
+** defaults
+
+Clean up the defaults that emacs provides, before even starting on anything custom. Thanks in large part to:
+  - github:technomancy/better-defaults
+  - github:technomancy/emacs-starter-kit
+
+#+BEGIN_SRC emacs-lisp
+  ;; ido when not helm
+  (ido-mode t)
+  (setq ido-flex-matching t)
+
+  ;; backup files
+  (setq backup-directory-alist '(("." . "~/.emacs.d/backups")))
+
+  ;; site-lisp in load path
+  (add-to-list 'load-path "~/.emacs.d/site-lisp")
+
+  ;; auto-revert when change is newer and unmodified
+  (global-auto-revert-mode 1)
+
+  ;; unique with a dirname, not number
+  (require 'uniquify)
+  (setq uniquify-buffer-name-style 'forward)
+
+  ;; scroll comp windows (repls too!)
+  (setq compilation-scroll-output 'first-error)
+
+  ;; this is the dumbest thing ever
+  (defalias 'yes-or-no-p 'y-or-n-p)
+
+  ;; word wrapping (visual) and highlighting current line
+  (global-visual-line-mode)
+  (global-hl-line-mode)
+
+  ;; tramp should use ssh by default
+  (setq tramp-default-method "ssh")
+
+  ;; 
+#+END_SRC
+  
+
+* ui/ux stuff
+
+** window decorations, theme and font
+
+#+BEGIN_SRC emacs-lisp
+  (defvar my/vis-theme-package 'material-theme)
+  (defvar my/vis-theme-name    'material)
+  (unless (package-installed-p my/vis-theme-package):qjk
+    (package-install my/vis-theme-package))
+  (load-theme my/vis-theme-name t)
+
+  ;; t t = don't resize window, for ajehull future frames
+  (defvar my/vis-default-font  "Fira Mono 8")
+  (set-frame-font my/vis-default-font t t)
+
+  ;; hide menus and such
+  (when window-system
+    (tool-bar-mode -1)
+    (menu-bar-mode -1)
+    (scroll-bar-mode -1))
+#+END_SRC
+
+- ~guide-key~ provides a popup with key bindings for prefix keys if you wait a moment.
+  #+BEGIN_SRC emacs-lisp
+    (req-package guide-key
+      :init   (guide-key-mode)
+      :config (progn
+                (setq guide-key/guide-key-sequence t)))
+  #+END_SRC
+  
+- ~neotree~ gives a tree (like NERDTree, kinda)
+  #+BEGIN_SRC emacs-lisp
+    (req-package neotree
+      :bind   (("C-c t" . neotree-toggle))
+      :config (progn
+                (with-eval-after-load 'projectile
+                  (add-hook 'projectile-switch-project-hook 'neotree-projectile-action))))
+  #+END_SRC
+    
+** display whitespace
+
+#+BEGIN_SRC emacs-lisp
+  ;; display whitespace
+  (setq whitespace-style '(face trailing tabs spaces newline empty indentation space-mark tab-mark newline-mark)
+        whitespace-display-mappings '((space-mark 32 [183] [46])
+                                      (newline-mark 10 [8629 10] [182 10])
+                                      (tab-mark 9 [9655 9] [92 9])))
+#+END_SRC
+
+** projectile
+#+BEGIN_SRC emacs-lisp
+  (req-package projectile
+    :init (setq projectile-enable-caching t
+                projectile-cache-file "~/.emacs.d/projectile.cache"
+                projectile-known-projects-file "~/.emacs.d/projectile-bookmarks.eld")
+    :config (projectile-global-mode))
+#+END_SRC
+
+** helm
+#+BEGIN_SRC emacs-lisp
+    (req-package helm
+      :commands (helm-M-x helm-mini helm-buffers-list)
+      :bind     (("M-x" . helm-M-x)
+                 ("C-c b" . helm-buffers-list))
+      :init     (require 'helm-config))
+
+    (req-package helm-projectile
+      :require (helm projectile helm-ag)
+      :bind    (("C-c p h" . helm-projectile)
+                ("C-c p p" . helm-projectile-switch-project))
+      :init    (helm-projectile-on))
+#+END_SRC
+
+** TODO modeline
+
+** TODO workspaces?
+** TODO window purpose?
+
+I saw a mode that assigned purposes to windows and then locked buffers to those window types...
+
+** evil
+#+BEGIN_SRC emacs-lisp
+  (req-package evil-surround
+    :require (evil evil-args evil-commentary)
+    :init   (progn (evil-mode 1)
+                   (evil-commentary-mode)
+                   (global-evil-surround-mode 1))
+    :config (progn
+              (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
+              (define-key evil-outer-text-objects-map "a" 'evil-outer-arg)))
+#+END_SRC
+
+    
+* org-mode
+#+BEGIN_SRC emacs-lisp
+  (defvar my/org-inbox-file "~/sync/inbox.org")
+  (req-package org
+    :bind (("C-c oc" . org-capture)
+           ("C-c oa" . org-agenda)
+           ("C-c ol" . org-store-link))
+    :config (progn
+              ;; local plugins
+              (require 'org-github-links)
+
+              ;; syntax in blocks
+              (setq org-src-fontify-natively t)
+
+              ;; agenda and capture
+              (setq org-agenda-files (list my/org-inbox-file)
+                    org-capture-templates
+                    `(("n" "Note" entry (file+datetree ,my/org-inbox-file)
+                       "* %?\n")
+                      ("t" "Todo" entry (file+headline ,my/org-inbox-file "Todo")
+                       "* TODO %?\n%U\n")
+                      ("s" "Settings Idea" entry (file+headline "~/.emacs.d/emacs.org" "planning")
+                       "* TODO %?\n")))))
+#+END_SRC
+
+
+* magit
+#+BEGIN_SRC emacs-lisp
+  (setq magit-last-seen-instructions "1.4.0")
+  (req-package magit
+    :bind (("C-c gs" . magit-status)
+           ("C-c gh" . magit-log-buffer-file)
+           ("C-c gl" . magit-log-current)))
+#+END_SRC
+
+  
+* code
+
+** language agnostic
+*** rainbow delimeters makes parens, blocks, etc. colored
+#+BEGIN_SRC emacs-lisp
+  (req-package rainbow-delimiters
+    :ensure t
+    :init   (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
+#+END_SRC
+
+*** linting, spelling, etc
+#+BEGIN_SRC emacs-lisp
+  (req-package flycheck
+    :init (global-flycheck-mode))
+
+  ;; spelling
+  (add-hook 'text-mode-hook (lambda () (flyspell-mode -1)))
+  (add-hook 'prog-mode-hook (lambda () (flyspell-prog-mode)))
+#+END_SRC
+
+*** indentation settings
+#+BEGIN_SRC emacs-lisp
+  (setq-default indent-tabs-mode nil)
+#+END_SRC
+
+**** TODO detect indentation from file
+**** TODO indentation settings from language (ruby = 2, etc.)
+
+** ruby/rails
+#+BEGIN_SRC emacs-lisp
+    (req-package enh-ruby-mode
+      :require ruby-mode
+      :mode    (("\\(Rake\\|Guard\\|Gem\\)file\\'" . enh-ruby-mode)
+                ("\\.rb\\|\\.rabl\\|\\.ru\\|\\.builder\\|\\.rake\\|\\.jbuilder\\|\\.gemspec'" . enh-ruby-mode))
+      :init    (progn
+                 (setq enh-ruby-deep-indent-parent nil
+                       enh-ruby-hanging-deep-indent-level 2)))
+
+    (req-package inf-ruby
+      :require enh-ruby-mode
+      :init    (with-eval-after-load 'enh-ruby-mode
+                 (progn
+                   (add-hook 'ruby-mode-hook 'inf-ruby-minor-mode)
+                   (add-hook 'enh-ruby-mode-hook 'inf-ruby-minor-mode)
+
+                   ;; send the current line to inf-ruby
+                   (defun ruby-send-line ()
+                     (interactive)
+                     (save-excursion
+                       (beginning-of-line)
+                       (let ((begin (point)))
+                         (end-of-line)
+                         (ruby-send-region begin (point)))))
+
+                   ;; fix definition and send block to use enh-ruby stuff
+                   (defun ruby-send-definition ()
+                     (interactive)
+                     (save-excursion
+                       (enh-ruby-beginning-of-defun)
+                       (let ((begin (point)))
+                         (enh-ruby-end-of-defun)
+                         (ruby-send-region begin (point)))))
+
+                   (defun ruby-send-block ()
+                     (interactive)
+                     (save-excursion
+                       (enh-ruby-beginning-of-block)
+                       (let ((begin (point)))
+                         (enh-ruby-end-of-block)
+                         (ruby-send-region begin (point)))))
+
+                   (dolist (binding '(("C-c e RET" . 'ruby-send-line)
+                                     ("C-c er" . 'ruby-send-region)
+                                     ("C-c eb" . 'ruby-send-block)
+                                     ("C-c ed" . 'ruby-send-definition)))
+                     (let ((keys (kbd (car binding)))
+                           (bind (cdr binding)))
+                       (define-key inf-ruby-minor-mode-map keys bind))))))
+
+    (req-package projectile-rails
+      :require projectile
+      :init    (with-eval-after-load 'projectile-mode
+                 (add-hook 'projectile-mode-hook 'projectile-rails-on)))
+
+    (req-package rvm
+      :require enh-ruby-mode
+      :init    (progn 
+                 (rvm-use-default)
+                 (add-hook 'enh-ruby-mode-hook (lambda () (rvm-activate-corresponding-ruby)))
+                 (defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate)
+                   (rvm-activate-corresponding-ruby))))
+
+    (req-package robe
+      :init  (progn
+                 (with-eval-after-load 'enh-ruby-mode
+                   (progn (add-hook 'enh-ruby-mode-hook 'robe-mode)
+                          (define-key enh-ruby-mode-map (kbd "C-c eh") 'robe-jump)))))
+
+    (req-package bundler :defer t)
+#+END_SRC
+
+#+RESULTS:
+
+** clojure
+#+BEGIN_SRC emacs-lisp
+  (req-package clojure-mode
+    :require clojure-mode-extra-font-locking
+    :mode    ("\\.edn$" "\\.boot$" "\\.cljs.*$" "\\.clj$" "lein-env")
+    :config  (progn
+               (add-hook 'clojure-mode-hook 'enable-paredit-mode)
+               (add-hook 'clojure-mode-hook 'subword-mode)
+               (add-hook 'clojure-mode-hook (lambda ()
+                                              (setq inferior-lisp-program "lein repl")
+                                              (font-lock-add-keywords
+                                               nil
+                                               '(("(\\(facts?\\)" (1 font-lock-keyword-face))
+                                                 ("(\\(backrgound?\\)" (1 font-lock-keyword-face))))
+                                              (define-clojure-indent (fact 1))
+                                              (define-clojure-indent (facts 2))))))
+
+  (req-package cider
+    :require clojure
+    :config  (progn
+               (add-hook 'cider-mode-hook 'cider-turn-on-eldoc-mode)
+               (add-hook 'cider-repl-mode-hook 'paredit-mode)
+               (setq cider-show-error-buffer t
+                     cider-auto-select-error-buffer t
+                     cider-repl-history-file "~/.emacs.d/cider.history"
+                     cider-repl-wrap-history t)))
+#+END_SRC
+
+** javascript
+
+** browser lang (html, css)
+
+*** TODO html, emmet
+*** TODO scss, css
+*** TODO angular stuff
+
+** misc languages
+
+*** rust
+#+BEGIN_SRC emacs-lisp
+(req-package rust-mode :mode "\\.rs\\'")
+#+END_SRC
+
+*** markdown
+#+BEGIN_SRC emacs-lisp
+(req-package markdown-mode :mode "\\.md\\'")
+#+END_SRC
+
+
+* one offs
+   
+- ~C-c \~~ to edit this file
+#+BEGIN_SRC emacs-lisp
+  (defun edit-emacs-org ()
+    (interactive)
+    (find-file-other-window (locate-user-emacs-file "emacs.org")))
+
+  (global-set-key (kbd "C-c ~") 'edit-emacs-org)
+#+END_SRC
+
+
+* footnotes
+
+- fetch and load all packages with dependencies
+#+BEGIN_SRC emacs-lisp
+  (req-package-finish)
+#+END_SRC
+
+
+* planning
+** TODO auto-completion
+- semantic completion, language specific?
+- cedet
+** TODO fix org-mode insert bindings 
+get org-mode insert bindings to leave evil in insert mode; by this that when hitting ~C-RET~ to add a node, evil should be in insert mode after
+** TODO maximum width before wrapping for text-mode
+** TODO global hot-key for org-capture
+** TODO setup tramp for work
+** TODO cedet                                                       :package:
+** TODO volatile-highlights                                         :package:
+** TODO gist                                                        :package:
+** TODO alert (some way to get notify popups)                       :package:
+** TODO multiple cursors                                           
+** TODO eyebrows                                                    :package:
+** TODO fill-column-indicator                                       :package:
+** TODO prodigy                                                     :package:
+** TODO idle-highlight-mode                                         :package:
+** TODO ox-reveal                                                   :package:
+** TODO ox-gfm                                                      :package:
+** TODO paredit
+** TODO paren-face                                                  :package:
+** TODO smart-scan                                                  :package:
+   move to the next/previous instance of the word under the buffer in the current buffer)
+** DONE whitespace
