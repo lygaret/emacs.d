@@ -158,6 +158,11 @@ Clean up the defaults that emacs provides, before even starting on anything cust
 #+END_SRC
 
 ** TODO modeline
+#+BEGIN_SRC emacs-lisp
+  (req-package smart-mode-line
+    :init (progn (sml/setup)
+                 (setq sml/theme 'respectful)))
+#+END_SRC
 
 ** TODO workspaces?
 ** TODO window purpose?
