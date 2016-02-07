@@ -36,11 +36,14 @@
   "Keymaps, just for me!? I'm touched!"
   :global t
   :keymap (let ((map (make-sparse-keymap)))
-	    (bind-key "C-c g s" 'magit-status)
-	    (bind-key "C-c g h" 'magit-log-buffer-file)
-	    (bind-key "C-c g l" 'magin-log-current)
+	    (bind-key "M-x"     'helm-M-x map)
+	    (bind-key "C-c b"   'helm-mini map)
+	    (bind-key "C-c g s" 'magit-status map)
+	    (bind-key "C-c g h" 'magit-log-buffer-file map)
+	    (bind-key "C-c g l" 'magin-log-current map)
 	    (bind-key "C-c p h" 'helm-projectile map)
-	    (bind-key "C-c p p" 'helm-projectile-switch-project)
+	    (bind-key "C-c p p" 'helm-projectile-switch-project map)
+	    (bind-key "C-c p b" 'helm-projectile-buffers-list map)
 	    map))
 
 (add-hook 'after-init-hook 'jon/custom-mode)
