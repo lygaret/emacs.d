@@ -1,0 +1,3 @@
+* ideas for config stuff
+
+[ ] async-emacs + package refresh contents
