@@ -3,7 +3,8 @@
 ;;; application for using HTTP documents
 
 (req-package restclient-mode
-  :mode "\\.http")
+  :command (restclient-mode)
+  :mode    "\\.http")
 
 (defun jon/launch/restclient ()
   (interactive)

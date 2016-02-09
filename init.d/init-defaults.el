@@ -18,8 +18,8 @@
 
 ;; unique buffer names with directory names, not numbers
 (req-package uniquify
-  :config (progn
-	    (setq uniquify-buffer-name-style 'forward)))
+  :defer nil
+  :init (setq uniquify-buffer-name-style 'forward))
 
 ;; word-wrapping and highlight current line
 (global-visual-line-mode)
@@ -27,6 +27,7 @@
 
 ;; don't delete the scratch buffer
 (req-package persistent-scratch
+  :defer nil
   :init (persistent-scratch-setup-default))
 
 ;; put customize stuff in a separate file

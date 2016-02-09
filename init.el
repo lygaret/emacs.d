@@ -14,8 +14,6 @@
 (add-to-list 'load-path (emacsd "init.d"))
 (add-to-list 'load-path (emacsd "site-lisp"))
 
-(xx require 'init-benchmark)
-
 ;; bootstrapping
 (require 'init-bootstrap)
 (require 'init-package)
@@ -26,7 +24,6 @@
 (require 'init-keymap)
 
 ;; features
-(require 'rel-linum)
 (require 'init-evil)
 (require 'init-tramp)
 (require 'init-projectile)
@@ -38,16 +35,25 @@
 
 ;; quick settings
 
-(setq jon/theme  'whiteboard)
-(setq jon/keymap '(("M-x"     . helm-M-x)
-		   ("C-c m"   . jon/toggle-messages)
-		   ("C-c b"   . helm-mini)
-		   ("C-c g s" . magit-status)
-		   ("C-c g h" . magit-log-buffer-file)
-		   ("C-c g l" . magit-log-current)
-		   ("C-c p h" . helm-projectile)
-		   ("C-c p p" . helm-projectile-switch-project)
-		   ("C-c p b" . helm-projectile-buffers-list)))
+(setq jon/theme 'whiteboard)
+
+(setq jon/theme/diminish
+      '(undo-tree-mode
+	auto-revert-mode
+	("guide-key" guide-key-mode)))
+
+(setq jon/keymap
+      '(("M-x"     . helm-M-x)
+	("C-c b"   . helm-mini)
+	("C-c g s" . magit-status)
+	("C-c g l" . magit-log-current)
+	("C-c p h" . helm-projectile)
+	("C-c p p" . helm-projectile-switch-project)
+	("C-c p s" . helm-ag-project-root)
+	("C-c p b" . helm-projectile-buffers-list)))
+
+(add-hook 'after-init-hook 'jon/theme-mode)
+(add-hook 'after-init-hook 'jon/keymap-mode)
 
 ;; Library
 

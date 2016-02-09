@@ -8,13 +8,9 @@
 (defvar jon/keymap/map (make-sparse-keymap)
   "Keymap for overrides and personal bindings")
 
-(define-minor-mode jon/keymap-mode
-  "Minor mode for custom keybinds"
-  :global t
-  :keymap jon/keymap/map)
-
 (defun jon/keymap/bind (bind command &optional predicate)
   "Add a key binding from BIND to COMMAND to `jon/keymap/map'."
+  (interactive "KKey Sequence? \naCommand? ")
   (bind-key bind command jon/keymap/map predicate))
 
 (defun jon/keymap/unbind (bind)
@@ -22,13 +18,17 @@
   (interactive "k")
   (unbind-key bind jon/keymap/map))
 
-(add-hook
- 'after-init-hook
- (lambda ()
-   (dolist (keybind jon/keymap)
-     (bind-key (car keybind) (cdr keybind) jon/keymap/map)))) 
-
-(add-hook 'after-init-hook 'jon/keymap-mode)
+(define-minor-mode jon/keymap-mode
+  "Minor mode for custom keybinds"
+  :global t
+  :keymap jon/keymap/map
+  (if jon/keymap-mode
+      (progn
+	(dolist (entry jon/keymap)
+	  (let ((keys (car entry))
+		(cmds (cdr entry)))
+	    (bind-key keys cmds jon/keymap/map)))
+	(message "Reloaded %s key-bindings..." (length jon/keymap)))))
 
 ;;;
 

@@ -6,22 +6,27 @@
 
 (req-package evil
   :ensure evil
+  :defer  nil
   :init   (progn
+	    (add-hook 'lisp-interaction-mode-hook 'evil-mode)
 	    (add-hook 'text-mode-hook 'evil-mode)
 	    (add-hook 'prog-mode-hook 'evil-mode)))
 
 (req-package evil-surround
   :require evil
+  :defer   nil
   :ensure  evil-surround
   :init    (add-hook 'evil-mode-hook 'evil-surround-mode))
 
 (req-package evil-commentary
   :require evil
+  :defer   nil
   :ensure  evil-commentary
   :init    (add-hook 'evil-mode-hook 'evil-commentary-mode))
 
 (req-package evil-args
   :require evil
+  :defer   nil
   :ensure  evil-args
   :config  (progn
 	     (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
