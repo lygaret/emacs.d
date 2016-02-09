@@ -15,6 +15,7 @@
 ;; ensure req-package is installed and available
 
 (unless (package-installed-p 'req-package)
+  (package-refresh-contents)
   (package-install 'req-package))
 
 (setq use-package-verbose t)
