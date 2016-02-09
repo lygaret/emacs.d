@@ -23,7 +23,10 @@
 
 ;; word-wrapping and highlight current line
 (global-visual-line-mode)
-(global-highline-mode)
+
+(req-package highline
+  :defer nil
+  :init (global-highline-mode))
 
 ;; don't delete the scratch buffer
 (req-package persistent-scratch
