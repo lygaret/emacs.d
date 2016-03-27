@@ -5,7 +5,8 @@ elpa
 /tramp
 /projectile.cache
 /recentf
-/custom.el
 /var
 /url
 /emojis
+/custom.el
+/user-lisp/custom.el
