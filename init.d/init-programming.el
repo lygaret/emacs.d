@@ -12,6 +12,9 @@
 (req-package helm-dash
   :commands (helm-dash helm-dash-at-point))
 
+(req-package rel-linum
+  :init (add-hook 'prog-mode-hook 'rel-linum-mode))
+
 (with-eval-after-load 'comint
   (add-hook 'comint-mode-hook (lambda () (text-scale-set -1))))
 

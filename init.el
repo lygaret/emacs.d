@@ -8,8 +8,9 @@
   (expand-file-name (or path "") user-emacs-directory))
 
 (add-to-list 'load-path (emacsd "init.d"))
-(add-to-list 'load-path (emacsd "site-lisp"))
 (add-to-list 'load-path (emacsd "user-lisp"))
+(add-to-list 'load-path (emacsd "site-lisp"))
+(add-to-list 'custom-theme-load-path (emacsd "site-lisp"))
 
 ;; bootstrapping
 (require 'init-bootstrap)
@@ -41,10 +42,8 @@
 
 ;; quick settings
 
-(use-package material-theme
-  :ensure t
-  :defer  t
-  :init   (setq jon/theme 'material))
+(setq jon/theme 'material
+      jon/theme/overlay 'material-overlay)
 
 (setq jon/theme/diminish
       '(undo-tree-mode
