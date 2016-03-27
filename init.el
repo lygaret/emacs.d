@@ -41,7 +41,10 @@
 
 ;; quick settings
 
-(setq jon/theme 'material)
+(use-package material-theme
+  :ensure t
+  :defer  t
+  :init   (setq jon/theme 'material))
 
 (setq jon/theme/diminish
       '(undo-tree-mode
