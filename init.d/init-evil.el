@@ -10,7 +10,8 @@
   :init   (progn
 	    (add-hook 'lisp-interaction-mode-hook 'evil-mode)
 	    (add-hook 'text-mode-hook 'evil-mode)
-	    (add-hook 'prog-mode-hook 'evil-mode)))
+	    (add-hook 'prog-mode-hook 'evil-mode)
+            (add-hook 'lui-mode-hook 'evil-mode)))
 
 (req-package evil-surround
   :require evil

@@ -8,10 +8,10 @@
 (defvar jon/keymap/map (make-sparse-keymap)
   "Keymap for overrides and personal bindings")
 
-(defun jon/keymap/bind (bind command &optional predicate)
+(defun jon/keymap/bind (bind command &optional map predicate)
   "Add a key binding from BIND to COMMAND to `jon/keymap/map'."
   (interactive "KKey Sequence? \naCommand? ")
-  (bind-key bind command jon/keymap/map predicate))
+  (bind-key bind command (or map jon/keymap/map) predicate))
 
 (defun jon/keymap/unbind (bind)
   "Remove the key binding from BIND in `jon/keymap/map'."

@@ -6,3 +6,6 @@ elpa
 /projectile.cache
 /recentf
 /custom.el
+/var
+/url
+/emojis

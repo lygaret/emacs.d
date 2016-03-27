@@ -1,18 +1,15 @@
-
+;;
 ;; bootstrap the configuration
 ;; the rest is defined in `lisp/init-*.el' files
 
 (defmacro xx (&rest body) nil)
-
-(defmacro as-command (&rest body)
-  `(lambda () (interactive) ,@body))
-
 (defun emacsd (&optional path)
   "Return a path to a file in emacs.d"
   (expand-file-name (or path "") user-emacs-directory))
 
 (add-to-list 'load-path (emacsd "init.d"))
 (add-to-list 'load-path (emacsd "site-lisp"))
+(add-to-list 'load-path (emacsd "user-lisp"))
 
 ;; bootstrapping
 (require 'init-bootstrap)
@@ -28,14 +25,23 @@
 (require 'init-tramp)
 (require 'init-projectile)
 (require 'init-helm)
+(require 'init-alert)
 
 ;; applications
 (require 'init-magit)
 (require 'init-restclient)
+(require 'init-github)
+(require 'init-slack)
+
+(require 'init-programming)
+(require 'init-lang-elisp)
+(require 'init-lang-ruby)
+
+(require 'init-lang-markdown)
 
 ;; quick settings
 
-(setq jon/theme 'whiteboard)
+(setq jon/theme 'material)
 
 (setq jon/theme/diminish
       '(undo-tree-mode
@@ -50,19 +56,14 @@
 	("C-c p h" . helm-projectile)
 	("C-c p p" . helm-projectile-switch-project)
 	("C-c p s" . helm-ag-project-root)
-	("C-c p b" . helm-projectile-buffers-list)))
+	("C-c p b" . helm-projectile-buffers-list)
+        ("C-c e"   . jon/prog-keymap)))
 
 (add-hook 'after-init-hook 'jon/theme-mode)
 (add-hook 'after-init-hook 'jon/keymap-mode)
 
-;; Library
-
-(defun jon/toggle-messages ()
-  (interactive)
-  (message "hello")
-  (unless (equal (buffer-name) "*Messages*")
-    (display-buffer "*Messages*" 'display-buffer-pop-up-window)))
-
 ;; get the whole thing started
 
 (req-package-finish)
+
+(put 'dired-find-alternate-file 'disabled nil)

@@ -35,13 +35,9 @@
 
 ;; put customize stuff in a separate file
 
-(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-
-(defun jon/load-custom-file ()
-  (when (file-exists-p custom-file)
-    (load custom-file)))
-
-(add-hook 'after-init-hook 'jon/load-custom-file)
+(setq custom-file (emacsd "user-lisp/custom.el"))
+(when (file-exists-p custom-file)
+  (load custom-file))
 
 ;; midnight-mode
 ;; cleans up unmodified buffers that have been sitting around too long

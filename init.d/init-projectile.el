@@ -7,7 +7,7 @@
   :init   (setq projectile-enable-caching t
 		projectile-cache-file (emacsd "projectile.cache")
 		projectile-known-projects-file (emacsd "projectile.index")
-		projectile-keymap-prefix "C-c M-p")
+		projectile-keymap-prefix (kbd "C-c M-p"))
   :config (projectile-global-mode))
 
 (req-package ag

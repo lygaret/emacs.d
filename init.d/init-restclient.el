@@ -2,9 +2,9 @@
 ;;; restclient
 ;;; application for using HTTP documents
 
-(req-package restclient-mode
-  :command (restclient-mode)
-  :mode    "\\.http")
+(req-package restclient
+  :commands (restclient-mode)
+  :mode     "\\.http")
 
 (defun jon/launch/restclient ()
   (interactive)
