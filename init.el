@@ -42,24 +42,25 @@
 
 ;; quick settings
 
-(setq jon/theme 'material
-      jon/theme/overlay 'material-overlay)
+(setq jon/theme          'material
+      jon/theme/overlay  'material-overlay
+      jon/theme/diminish '(undo-tree-mode
+                           auto-revert-mode
+                           guide-key-mode
+                           evil-commentary-mode
+                           global-highline-mode
+                           rel-linum-mode
+                           visual-line-mode))
 
-(setq jon/theme/diminish
-      '(undo-tree-mode
-	auto-revert-mode
-	("guide-key" guide-key-mode)))
-
-(setq jon/keymap
-      '(("M-x"     . helm-M-x)
-	("C-c b"   . helm-mini)
-	("C-c g s" . magit-status)
-	("C-c g l" . magit-log-current)
-	("C-c p h" . helm-projectile)
-	("C-c p p" . helm-projectile-switch-project)
-	("C-c p s" . helm-ag-project-root)
-	("C-c p b" . helm-projectile-buffers-list)
-        ("C-c e"   . jon/prog-keymap)))
+(setq jon/keymap '(("M-x"     . helm-M-x)
+                   ("C-c b"   . helm-mini)
+                   ("C-c g s" . magit-status)
+                   ("C-c g l" . magit-log-current)
+                   ("C-c p h" . helm-projectile)
+                   ("C-c p p" . helm-projectile-switch-project)
+                   ("C-c p s" . helm-ag-project-root)
+                   ("C-c p b" . helm-projectile-buffers-list)
+                   ("C-c e"   . jon/prog-keymap)))
 
 (add-hook 'after-init-hook 'jon/theme-mode)
 (add-hook 'after-init-hook 'jon/keymap-mode)

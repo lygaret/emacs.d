@@ -5,13 +5,10 @@
 ;;;  describe Emacs as "a great operating system, lacking only a decent editor".
 
 (req-package evil
-  :ensure evil
-  :defer  nil
-  :init   (progn
-	    (add-hook 'lisp-interaction-mode-hook 'evil-mode)
-	    (add-hook 'text-mode-hook 'evil-mode)
-	    (add-hook 'prog-mode-hook 'evil-mode)
-            (add-hook 'lui-mode-hook 'evil-mode)))
+  :ensure   evil
+  :commands (evil-mode)
+  :init     (progn
+              (evil-mode t)))
 
 (req-package evil-surround
   :require evil
