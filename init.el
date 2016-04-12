@@ -37,7 +37,6 @@
 (require 'init-programming)
 (require 'init-lang-elisp)
 (require 'init-lang-ruby)
-
 (require 'init-lang-markdown)
 
 ;; quick settings
@@ -68,5 +67,3 @@
 ;; get the whole thing started
 
 (req-package-finish)
-
-(put 'dired-find-alternate-file 'disabled nil)

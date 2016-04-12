@@ -18,9 +18,6 @@
 (with-eval-after-load 'comint
   (add-hook 'comint-mode-hook (lambda () (text-scale-set -1))))
 
-(setq-default indent-tabs-mode nil)
-(setq-default tab-always-indent 'complete)
-
 (defvar jon/prog--eval-last-sexp
   (lambda ()
     (message "Evaluation has not been configured in this mode."))

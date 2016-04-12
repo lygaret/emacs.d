@@ -17,7 +17,10 @@
          ("\\.rake"     . enh-ruby-mode)
          ("\\.jbuilder" . enh-ruby-mode)
          ("\\.gemspec"  . enh-ruby-mode)
-         ("\\.simplecov". enh-ruby-mode)))
+         ("\\.simplecov". enh-ruby-mode))
+  :init  (progn
+           (setq enh-ruby-deep-indent-parent nil
+                 enh-ruby-hanging-deep-indent-level 2)))
 
 (req-package yaml-mode
   :mode (("\\.yaml"     . yaml-mode)

@@ -12,6 +12,10 @@
 (ido-mode t)
 (setq ido-flex-matching t)
 
+;; no tabs (spaces only) and tab should only really manage indentation
+(setq-default indent-tabs-mode nil)
+(setq-default tab-always-indent t)
+
 ;; centralize backup files
 (let ((backup-dir (expand-file-name "./backups" user-emacs-directory)))
   (setq backup-directory-alist `(("." . ,backup-dir))))
