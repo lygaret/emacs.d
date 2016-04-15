@@ -58,8 +58,7 @@
                    ("C-c p h" . helm-projectile)
                    ("C-c p p" . helm-projectile-switch-project)
                    ("C-c p s" . helm-ag-project-root)
-                   ("C-c p b" . helm-projectile-buffers-list)
-                   ("C-c e"   . jon/prog-keymap)))
+                   ("C-c p b" . helm-projectile-buffers-list)))
 
 (add-hook 'after-init-hook 'jon/theme-mode)
 (add-hook 'after-init-hook 'jon/keymap-mode)

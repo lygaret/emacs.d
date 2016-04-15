@@ -25,27 +25,20 @@
 (req-package yaml-mode
   :mode (("\\.yaml"     . yaml-mode)
          ("\\.yml"      . yaml-mode)))
+
+(req-package bundler)
                 
 (req-package inf-ruby
-  :defer   t
-  :init    (with-eval-after-load 'enh-ruby-mode
-             (add-hook 'enh-ruby-mode-hook 'inf-ruby-minor-mode)))
+  :init (progn (add-hook 'enh-ruby-mode-hook 'inf-ruby-minor-mode)))
 
 (req-package rvm
-  :defer   t
-  :init    (progn
-             (add-hook 'enh-ruby-mode-hook 'rvm-activate-corresponding-ruby)
-             (advice-add 'inf-ruby-console-auto :before 'rvm-activate-corresponding-ruby)))
-
-(req-package bundler
-  :defer   t)
+  :init (progn (add-hook 'enh-ruby-mode-hook 'rvm-activate-corresponding-ruby)
+               (advice-add 'inf-ruby-console-auto :before 'rvm-activate-corresponding-ruby)))
 
 (req-package robe
-  :defer   t
-  :init    (with-eval-after-load 'enh-ruby-mode
-             (progn (add-hook 'enh-ruby-mode-hook 'robe-mode)
-                    (jon/keymap/bind "C-c x h" 'robe-jump)
-                    (jon/keymap/bind "C-c x d" 'robe-doc))))
+  :init   (progn (add-hook 'enh-ruby-mode-hook 'robe-mode))
+  :config (progn (jon/keymap/bind "C-c e h" 'robe-jump enh-ruby-mode-map)
+                 (jon/keymap/bind "C-c e d" 'robe-doc  enh-ruby-mode-map)))
 
 ;; fix definition and send block to use enh-ruby stuff
 
